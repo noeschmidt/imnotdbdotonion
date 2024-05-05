@@ -45,14 +45,14 @@ require 'database.php';
     </div>
 
     <?php
-    $sql = "SELECT id, title, description, imdb_rating, year, actors, my_rating, my_comment, poster_link FROM projectIMDBnoeschmidt.movies ORDER BY title DESC";
+    $sql = "SELECT id, title, description, imdb_rating, year, actors, my_rating, my_comment, poster_link, movie_link FROM projectIMDBnoeschmidt.movies ORDER BY title DESC";
     $stmt = $pdo->query($sql);
 
     if ($stmt->rowCount() > 0) {
         // Affichage des données de chaque ligne
         echo "<div class='grid grid-cols-1 md:grid-cols-3 justify-center gap-4'>";
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) { // Utilisation de PDO::FETCH_ASSOC
-            echo "<a href='movie-details.php?id=" . $row["id"] . "' class='flex flex-col w-full h-fit border border-neutral-800 bg-neutral-900 p-4 md:p-8 rounded-xl gap-4 transition ease-in-out duration-200 hover:scale-95'>";
+            echo "<a href='details.php?link=" . $row["movie_link"] . "' class='flex flex-col w-full h-fit border border-neutral-800 bg-neutral-900 p-4 md:p-8 rounded-xl gap-4 transition ease-in-out duration-200 hover:scale-95'>";
             echo "<div class='flex gap-2'>";
             echo "<img src='" . $row["poster_link"] . "' alt='Poster' class='rounded-lg border-neutral-800 border w-24 h-fit''>";
             echo "<div class='flex flex-col'>";

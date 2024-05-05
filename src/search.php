@@ -3,6 +3,16 @@ global $pdo;
 require 'database.php';
 
 $search_term = isset($_POST['search']) ? $_POST['search'] : 'Default Search';  // Récupère la valeur de recherche ou utilise 'Default Search' si rien n'est soumis
+
+// Database query function to check for movie and get custom rating
+function getCustomRating($movieLink)
+{
+    global $pdo;
+    $stmt = $pdo->prepare("SELECT my_rating FROM projectIMDBnoeschmidt.movies WHERE movie_link = :movie_link");
+    $stmt->execute(['movie_link' => $movieLink]);
+    return $stmt->fetchColumn();
+}
+
 ?>
 <!doctype html>
 <html lang="en">
@@ -19,22 +29,28 @@ $search_term = isset($_POST['search']) ? $_POST['search'] : 'Default Search';  /
 <nav class="bg-black">
     <div class="flex flex-wrap items-center justify-between mx-auto">
         <a href="/" class="flex items-center space-x-3 rtl:space-x-reverse">
-            <img src="/assets/logo.png" class="h-8" alt="Flowbite Logo" />
+            <img src="/assets/logo.png" class="h-8" alt="Flowbite Logo"/>
             <span class="self-center text-2xl font-semibold whitespace-nowrap dark:text-white">IM(not)DB.onion</span>
         </a>
-        <button data-collapse-toggle="navbar-default" type="button" class="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600" aria-controls="navbar-default" aria-expanded="false">
+        <button data-collapse-toggle="navbar-default" type="button"
+                class="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600"
+                aria-controls="navbar-default" aria-expanded="false">
             <span class="sr-only">Open main menu</span>
             <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
-                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 1h15M1 7h15M1 13h15" />
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M1 1h15M1 7h15M1 13h15"/>
             </svg>
         </button>
         <div class="hidden w-full md:block md:w-auto" id="navbar-default">
             <ul class="font-medium flex flex-col p-4 md:p-0 mt-4 rounded-lg bg-transparent md:flex-row md:space-x-8 rtl:space-x-reverse md:mt-0 md:border-0">
                 <li>
-                    <a href="/" class="block text-white py-2 px-3 rounded hover:bg-red-700 transition-all ease-in-out duration-200">Home/Search</a>
+                    <a href="/"
+                       class="block text-white py-2 px-3 rounded hover:bg-red-700 transition-all ease-in-out duration-200">Home/Search</a>
                 </li>
                 <li>
-                    <a href="/src/list-movies.php" class="block text-white py-2 px-3 rounded hover:bg-red-700 transition-all ease-in-out duration-200">Movies Viewed</a>
+                    <a href="/src/list-movies.php"
+                       class="block text-white py-2 px-3 rounded hover:bg-red-700 transition-all ease-in-out duration-200">Movies
+                        Viewed</a>
                 </li>
             </ul>
         </div>
@@ -57,68 +73,88 @@ $search_term = isset($_POST['search']) ? $_POST['search'] : 'Default Search';  /
     error_reporting(E_ALL);
 
     if (isset($_POST['search'])) {
-        $search_term = $_POST['search'];
-        $search_url = "https://www.imdb.com/search/title/?title=" . urlencode($search_term);
+    $search_term = $_POST['search'];
+    $search_url = "https://www.imdb.com/search/title/?title=" . urlencode($search_term);
 
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $search_url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $search_url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 
-        $html = curl_exec($ch);
-        if (curl_errno($ch)) {
-            echo 'Curl error: ' . curl_error($ch);
-        }
-        curl_close($ch);
-
-        if ($html) {
-            $dom = new DOMDocument();
-            @$dom->loadHTML($html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
-            $xpath = new DOMXPath($dom);
-
-            // Query for movie titles
-            $titleNodes = $xpath->query('//h3[@class="ipc-title__text"]');
-
-            // Query for IMDb ratings
-            $ratingNodes = $xpath->query('//span[contains(@class, "ipc-rating-star--imdb")]');
-
-            // Query for IMDB images
-            $imageNodes = $xpath->query('//img[contains(@class,"ipc-image")]');
-
-            $descriptionNodes = $xpath->query('//div[@class="ipc-html-content-inner-div"]');
-
-            $linkNodes = $xpath->query('//a[@class="ipc-lockup-overlay ipc-focusable"]/@href');
-
-            echo "<div class='flex flex-col gap-8 max-w-2xl mx-auto'>";
-            foreach ($titleNodes as $index => $titleNode) {
-                $rawTitle = trim($titleNode->textContent);
-                // Removing numbering from the title using regex
-                $title = preg_replace('/^\d+\.\s*/', '', $rawTitle);
-                $rating = $ratingNodes->item($index) ? trim($ratingNodes->item($index)->textContent) : 'No rating found';
-                $imageSrc = $imageNodes->item($index) ? $imageNodes->item($index)->getAttribute('src') : '../assets/no-poster.png'; // Assurez-vous d'avoir une image par défaut
-                $description = $descriptionNodes->item($index) ? trim($descriptionNodes->item($index)->textContent) : 'No description found';
-                $hrefValue = $linkNodes->item($index) ? $linkNodes->item($index)->nodeValue : '';
-                $fullUrl = "https://www.imdb.com" . $hrefValue;
-
-                // Output each movie in a card
-                echo "<a href='details.php?link=" . urlencode($fullUrl) . "' class='flex w-full h-fit border border-neutral-800 bg-neutral-900 p-4 md:p-8 rounded-xl gap-4 transition ease-in-out duration-200 hover:scale-110'>
-            <img src='$imageSrc' alt='Poster' class='rounded-lg border-neutral-800 border w-24 h-fit'> 
-              <div class='bg-neutral-900'>
-                  <h5 class='font-semibold text-xl line-clamp-1 md:line-clamp-2'>$title</h5>
-                  <p class='flex align-middle gap-1'><svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill='#F9C202' viewBox='0 0 256 256'><path d='M234.29,114.85l-45,38.83L203,211.75a16.4,16.4,0,0,1-24.5,17.82L128,198.49,77.47,229.57A16.4,16.4,0,0,1,53,211.75l13.76-58.07-45-38.83A16.46,16.46,0,0,1,31.08,86l59-4.76,22.76-55.08a16.36,16.36,0,0,1,30.27,0l22.75,55.08,59,4.76a16.46,16.46,0,0,1,9.37,28.86Z'></path></svg> $rating</p>
-                  <p class='mt-2 opacity-80 line-clamp-2 md:line-clamp-3'>$description</p>
-              </div>
-          </a>";
-            }
-            echo "</div>";
-        } else {
-            echo "<p>Failed to retrieve data. Please try again.</p>";
-        }
-    } else {
-        echo "<p>No search term provided.</p>";
+    $html = curl_exec($ch);
+    if (curl_errno($ch)) {
+        echo 'Curl error: ' . curl_error($ch);
     }
-    ?>
-</div>
+    curl_close($ch);
+
+    if ($html) {
+        $dom = new DOMDocument();
+        @$dom->loadHTML($html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+        $xpath = new DOMXPath($dom);
+
+        // Query for movie titles
+        $titleNodes = $xpath->query('//h3[@class="ipc-title__text"]');
+
+        // Query for IMDb ratings
+        $ratingNodes = $xpath->query('//span[contains(@class, "ipc-rating-star--imdb")]');
+
+        // Query for IMDB images
+        $imageNodes = $xpath->query('//img[contains(@class,"ipc-image")]');
+
+        $descriptionNodes = $xpath->query('//div[@class="ipc-html-content-inner-div"]');
+
+        $linkNodes = $xpath->query('//a[@class="ipc-lockup-overlay ipc-focusable"]/@href');
+
+        echo "<div class='flex flex-col gap-8 max-w-2xl mx-auto'>";
+        $notedFilms = [];
+        $unnotedFilms = [];
+
+        foreach ($titleNodes as $index => $titleNode) {
+            $rawTitle = trim($titleNode->textContent);
+            $title = preg_replace('/^\d+\.\s*/', '', $rawTitle);
+            $rating = $ratingNodes->item($index) ? trim($ratingNodes->item($index)->textContent) : 'No rating found';
+            $imageSrc = $imageNodes->item($index) ? $imageNodes->item($index)->getAttribute('src') : '../assets/no-poster.png';
+            $description = $descriptionNodes->item($index) ? trim($descriptionNodes->item($index)->textContent) : 'No description found';
+            $hrefValue = $linkNodes->item($index) ? $linkNodes->item($index)->nodeValue : '';
+            $fullUrl = "https://www.imdb.com" . $hrefValue;
+
+            // Vérifiez le rating personnalisé et ajustez le fond
+            $customRating = getCustomRating($fullUrl);
+            $bgColor = $customRating ? 'bg-neutral-600' : 'bg-neutral-900'; // Change background if rated
+
+            // Création de la carte HTML pour chaque film
+            $movieHtml = "<a href='details.php?link=" . urlencode($fullUrl) . "' class='flex w-full h-fit border border-neutral-800 $bgColor p-4 md:p-8 rounded-xl gap-4 transition ease-in-out duration-200 hover:scale-110'>
+                    <img src='$imageSrc' alt='Poster' class='rounded-lg border-neutral-800 border w-24 h-fit'>
+                    <div class='$bgColor'>
+                        <h5 class='font-semibold text-xl line-clamp-1 md:line-clamp-2'>$title</h5>
+                        <p class='flex align-middle gap-1'><svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill='#F9C202' viewBox='0 0 256 256'><path d='M234.29,114.85l-45,38.83L203,211.75a16.4,16.4,0,0,1-24.5,17.82L128,198.49,77.47,229.57A16.4,16.4,0,0,1,53,211.75l13.76-58.07-45-38.83A16.46,16.46,0,0,1,31.08,86l59-4.76,22.76-55.08a16.36,16.36,0,0,1,30.27,0l22.75,55.08,59,4.76a16.46,16.46,0,0,1,9.37,28.86Z'></path></svg> $rating</p>
+                        <p class='mt-2 opacity-80 line-clamp-2 md:line-clamp-3'>$description</p>";
+            if ($customRating) {
+                $movieHtml .= "<p class='text-yellow-300 font-semibold'>Your Rating: $customRating</p>";
+            }
+            $movieHtml .= "</div></a>";
+
+            // Séparer les films notés des non notés
+            if ($customRating) {
+                $notedFilms[] = $movieHtml;
+            } else {
+                $unnotedFilms[] = $movieHtml;
+            }
+        }
+
+// Affichage des films notés en premier
+        echo "<div class='flex flex-col gap-8 max-w-2xl mx-auto'>";
+        foreach ($notedFilms as $notedFilm) {
+            echo $notedFilm;
+        }
+        foreach ($unnotedFilms as $unnotedFilm) {
+            echo $unnotedFilm;
+        }
+        echo "</div>";
+    }}
+        ?>
+    </div>
+
 <script src="../node_modules/flowbite/dist/flowbite.min.js"></script>
 </body>
 </html>

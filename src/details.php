@@ -172,6 +172,16 @@ border border-neutral-200 rounded-lg dark:border-neutral-600 px-4 py-2"/>
 
     <h2 class="font-semibold text-xl mb-1">Comments</h2>
     <?php
+    if (isset($_GET['link'])) {
+        // Récupère la valeur URL encodée
+        $encodedUrl = $_GET['link'];
+
+        // Décoder l'URL
+        $decodedUrl = urldecode($encodedUrl);
+
+        // Pour le stocker dans la variable $movie_link
+        $movie_link = $decodedUrl;
+    }
     // Traitement du formulaire de commentaire
     if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['comment'])) {
         $comment = $_POST['comment'];
@@ -186,9 +196,9 @@ border border-neutral-200 rounded-lg dark:border-neutral-600 px-4 py-2"/>
 
         try {
             // Prepare SQL query with placeholders
-            $sql = "INSERT INTO `projectIMDBnoeschmidt`.movies (`title`, `description`, `imdb_rating`, `year`, `actors`, `my_rating`, `my_comment`, `poster_link`) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            $sql = "INSERT INTO `projectIMDBnoeschmidt`.movies (`title`, `description`, `imdb_rating`, `year`, `actors`, `my_rating`, `my_comment`, `poster_link`, `movie_link`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
             $stmt = $pdo->prepare($sql);
-            $stmt->execute([$title, $storyline, $imdb_rating, $year, $actors, $rating, $comment, $poster_link]);
+            $stmt->execute([$title, $storyline, $imdb_rating, $year, $actors, $rating, $comment, $poster_link, $movie_link]);
 
             // Redirect or handle post-submission display
             echo "<meta http-equiv='refresh' content='0'>";
