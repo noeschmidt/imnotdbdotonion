@@ -1,4 +1,7 @@
 <?php
+global $pdo;
+require 'database.php';
+
 $search_term = isset($_POST['search']) ? $_POST['search'] : 'Default Search';  // Récupère la valeur de recherche ou utilise 'Default Search' si rien n'est soumis
 ?>
 <!doctype html>
@@ -74,54 +77,36 @@ $search_term = isset($_POST['search']) ? $_POST['search'] : 'Default Search';  /
         }
         curl_close($ch);
 
-        if (!$html) {
-            echo "<p>Failed to retrieve data. Please try again.</p>";
-        } else {
+        if ($html) {
             $dom = new DOMDocument();
             @$dom->loadHTML($html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
             $xpath = new DOMXPath($dom);
 
-            // Query for movie titles
             $titleNodes = $xpath->query('//h3[@class="ipc-title__text"]');
-
-            // Query for IMDb ratings
-            $ratingNodes = $xpath->query('//span[contains(@class, "ipc-rating-star--imdb")]');
-
-            // Query for IMDB images
-            $imageNodes = $xpath->query('//img[contains(@class,"ipc-image")]');
-
-            $descriptionNodes = $xpath->query('//div[@class="ipc-html-content-inner-div"]');
-
-            $linkNodes = $xpath->query('//a[@class="ipc-lockup-overlay ipc-focusable"]/@href');
-
             echo "<div class='flex flex-col gap-8 max-w-2xl mx-auto'>";
+
             foreach ($titleNodes as $index => $titleNode) {
                 $rawTitle = trim($titleNode->textContent);
-                // Removing numbering from the title using regex
                 $title = preg_replace('/^\d+\.\s*/', '', $rawTitle);
-                $rating = $ratingNodes->item($index) ? trim($ratingNodes->item($index)->textContent) : 'No rating found';
-                $imageSrc = $imageNodes->item($index) ? $imageNodes->item($index)->getAttribute('src') : '../assets/no-poster.png'; // Assurez-vous d'avoir une image par défaut
-                $description = $descriptionNodes->item($index) ? trim($descriptionNodes->item($index)->textContent) : 'No description found';
-                $hrefValue = $linkNodes->item($index) ? $linkNodes->item($index)->nodeValue : '';
-                $fullUrl = "https://www.imdb.com" . $hrefValue;
+
+                // Check database for personal rating
+                $stmt = $pdo->prepare("SELECT my_rating FROM projectIMDB WHERE title = :title");
+                $stmt->execute(['title' => $title]);
+                $userRating = $stmt->fetchColumn();
+
+                $ratingText = $userRating ? "Your rating: $userRating" : "Not rated by you";
 
                 // Output each movie in a card
-                echo "<a href='details.php?link=" . urlencode($fullUrl) . "' class='flex w-full h-fit border border-neutral-800 bg-neutral-900 p-4 md:p-8 rounded-xl gap-4 transition ease-in-out duration-200 hover:scale-110'>
-            <img src='$imageSrc' alt='Poster' class='rounded-lg border-neutral-800 border w-24 h-fit'> 
-              <div class='bg-neutral-900'>
-                  <h5 class='font-semibold text-xl line-clamp-1 md:line-clamp-2'>$title</h5>
-                  <p class='flex align-middle gap-1'><svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill='#F9C202' viewBox='0 0 256 256'><path d='M234.29,114.85l-45,38.83L203,211.75a16.4,16.4,0,0,1-24.5,17.82L128,198.49,77.47,229.57A16.4,16.4,0,0,1,53,211.75l13.76-58.07-45-38.83A16.46,16.46,0,0,1,31.08,86l59-4.76,22.76-55.08a16.36,16.36,0,0,1,30.27,0l22.75,55.08,59,4.76a16.46,16.46,0,0,1,9.37,28.86Z'></path></svg> $rating</p>
-                  <p class='mt-2 opacity-80 line-clamp-2 md:line-clamp-3'>$description</p>
-              </div>
-          </a>";
+                echo "<div class='movie-card'>$title - $ratingText</div>";
             }
             echo "</div>";
+        } else {
+            echo "<p>Failed to retrieve data. Please try again.</p>";
         }
     } else {
         echo "<p>No search term provided.</p>";
     }
     ?>
-
 </div>
 <script src="../node_modules/flowbite/dist/flowbite.min.js"></script>
 </body>

@@ -1,6 +1,6 @@
 <?php
 $host = 'localhost:8889';
-$dbname = 'projectIMDB';
+$dbname = 'projectIMDBnoeschmidt';
 $username = 'root';
 $password = 'root';
 try {
