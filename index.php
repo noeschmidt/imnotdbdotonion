@@ -5,8 +5,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>IMDBNoé.onion - Home</title>
-    <link href="output.css" rel="stylesheet">
-    <link href="input.css" rel="stylesheet">
+    <link href="src/output.css" rel="stylesheet">
+    <link href="src/input.css" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
@@ -14,7 +14,7 @@
     <nav class="bg-black">
         <div class="flex flex-wrap items-center justify-between mx-auto">
             <a href="https://flowbite.com/" class="flex items-center space-x-3 rtl:space-x-reverse">
-                <img src="../assets/logo.png" class="h-8" alt="Flowbite Logo" />
+                <img src="assets/logo.png" class="h-8" alt="Flowbite Logo" />
                 <span class="self-center text-2xl font-semibold whitespace-nowrap dark:text-white">IM(not)DB.onion</span>
             </a>
             <button data-collapse-toggle="navbar-default" type="button" class="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600" aria-controls="navbar-default" aria-expanded="false">
@@ -42,7 +42,7 @@
             <p class="opacity-80 text-sm">Enter a movie name below and click "search".</p>
         </div>
 
-        <form method="post" action="search.php" class="w-full flex justify-center">
+        <form method="post" action="src/search.php" class="w-full flex justify-center">
             <div class="relative w-96">
                 <label for="search" class="sr-only">Search</label>
                 <input type="search" name="search" id="search" class="block w-full p-4 h-full text-sm text-gray-900 border border-gray-300 rounded-lg bg-neutral-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-neutral-700 dark:border-neutral-600 dark:placeholder-neutral-400 dark:text-white dark:focus:ring-red-500 dark:focus:border-red-500" placeholder="Search" required />
@@ -99,7 +99,7 @@
         ?>
 
     </div>
-    <script src="../node_modules/flowbite/dist/flowbite.min.js"></script>
+    <script src="node_modules/flowbite/dist/flowbite.min.js"></script>
 </body>
 
 </html>

@@ -49,7 +49,7 @@ $search_term = isset($_POST['search']) ? $_POST['search'] : 'Default Search';  /
         <h1 class="text-4xl">Looking for <span class="italic"><?php echo htmlspecialchars($search_term); ?></span>...
         </h1>
         <p class="opacity-80 text-sm">Click on a movie below to get redirected to it.</p>
-        <a href="index.php"
+        <a href="../index.php"
            class="mt-2 mx-auto cursor-pointer bg-red-600 border-2 border-red-700  w-48 h-fit px-4 py-3 font-medium text-lg rounded-xl transition ease-in-out duration-200 hover:bg-red-700 hover:border-red-800">Search
             another</a>
     </div>
