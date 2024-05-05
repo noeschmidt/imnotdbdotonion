@@ -1,0 +1,36 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+body {
+    font-family: "Outfit", sans-serif;
+    background-color: black;
+    color: white;
+}
+
+h1 {
+    font-weight: 700;
+}
+
+.scroll-container {
+    display: flex;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+}
+.scroll-item {
+    flex: none;
+}
+
+ .rating {
+     cursor: pointer;
+     color: black;
+     font-size: 32px;
+ }
+.star:hover,
+.star:hover ~ .star {
+    cursor: pointer;
+    color: #ffcc00;
+}
