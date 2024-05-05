@@ -18,29 +18,23 @@ require 'database.php'; // Assurez-vous que cette inclusion est correcte
 <body class="max-w-screen-xl mx-auto p-4">
 <nav class="bg-black">
     <div class="flex flex-wrap items-center justify-between mx-auto">
-        <a href="https://flowbite.com/" class="flex items-center space-x-3 rtl:space-x-reverse">
-            <img src="../assets/logo.png" class="h-8" alt="Flowbite Logo"/>
+        <a href="/" class="flex items-center space-x-3 rtl:space-x-reverse">
+            <img src="/assets/logo.png" class="h-8" alt="Flowbite Logo" />
             <span class="self-center text-2xl font-semibold whitespace-nowrap dark:text-white">IM(not)DB.onion</span>
         </a>
-        <button data-collapse-toggle="navbar-default" type="button"
-                class="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600"
-                aria-controls="navbar-default" aria-expanded="false">
+        <button data-collapse-toggle="navbar-default" type="button" class="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600" aria-controls="navbar-default" aria-expanded="false">
             <span class="sr-only">Open main menu</span>
             <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
-                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M1 1h15M1 7h15M1 13h15"/>
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 1h15M1 7h15M1 13h15" />
             </svg>
         </button>
         <div class="hidden w-full md:block md:w-auto" id="navbar-default">
             <ul class="font-medium flex flex-col p-4 md:p-0 mt-4 rounded-lg bg-transparent md:flex-row md:space-x-8 rtl:space-x-reverse md:mt-0 md:border-0">
                 <li>
-                    <a href="/index.php"
-                       class="block text-white py-2 px-3 rounded hover:bg-red-700 transition-all ease-in-out duration-200">Home/Search</a>
+                    <a href="/" class="block text-white py-2 px-3 rounded hover:bg-red-700 transition-all ease-in-out duration-200">Home/Search</a>
                 </li>
                 <li>
-                    <a href=""
-                       class="block text-white py-2 px-3 rounded hover:bg-red-700 transition-all ease-in-out duration-200">Movies
-                        Viewed</a>
+                    <a href="/src/list-movies.php" class="block text-white py-2 px-3 rounded hover:bg-red-700 transition-all ease-in-out duration-200">Movies Viewed</a>
                 </li>
             </ul>
         </div>
@@ -137,7 +131,6 @@ require 'database.php'; // Assurez-vous que cette inclusion est correcte
         echo "</ul>";
         }
 
-
         } else {
             echo "<p>No movie link provided.</p>";
         }
@@ -178,64 +171,57 @@ border border-neutral-200 rounded-lg dark:border-neutral-600 px-4 py-2"/>
     </div>
 
     <h2 class="font-semibold text-xl mb-1">Comments</h2>
-<?php
+    <?php
     // Traitement du formulaire de commentaire
     if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['comment'])) {
-    $comment = $_POST['comment'];
-    $rating = intval($_POST['rating']);
-    $title = $_POST['title'];
-    $storyline = $_POST['storyline'];
-    $imdb_rating = $_POST['imdb_rating'];
-    $year = $_POST['year'];
-    $actors = $_POST['actors'];
-    $poster_link = $_POST['poster_link'];
-    $movie_link = $_POST['movie_link'];
+        $comment = $_POST['comment'];
+        $rating = intval($_POST['rating']);
+        $title = $_POST['title'];
+        $storyline = $_POST['storyline'];
+        $imdb_rating = $_POST['imdb_rating'];
+        $year = $_POST['year'];
+        $actors = $_POST['actors'];
+        $poster_link = $_POST['poster_link'];
+        $movie_link = $_POST['movie_link'];
 
-    try {
-    // Prepare SQL query with placeholders
-    $sql = "INSERT INTO `projectIMDB`.movies (`title`, `description`, `imdb_rating`, `year`, `actors`, `my_rating`, `my_comment`, `poster_link`) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([$title, $storyline, $imdb_rating, $year, $actors, $rating, $comment, $poster_link]);
+        try {
+            // Prepare SQL query with placeholders
+            $sql = "INSERT INTO `projectIMDBnoeschmidt`.movies (`title`, `description`, `imdb_rating`, `year`, `actors`, `my_rating`, `my_comment`, `poster_link`) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([$title, $storyline, $imdb_rating, $year, $actors, $rating, $comment, $poster_link]);
 
-    // Redirect or handle post-submission display
-    echo "<meta http-equiv='refresh' content='0'>";
-    header('Location: details.php?=' . $movie_link);
-    exit;
-    } catch (PDOException $e) {
-    die("PDO Error: " . $e->getMessage());
-    }
+            // Redirect or handle post-submission display
+            echo "<meta http-equiv='refresh' content='0'>";
+            header('Location: details.php?=' . $movie_link);
+            exit;
+        } catch (PDOException $e) {
+            die("PDO Error: " . $e->getMessage());
+        }
     } else {
-    die("Required fields are missing.");
+        die("Required fields are missing.");
     }
-?>
-    <?php
     // Déclaration de la variable pour stocker les commentaires
     $comments = [];
 
-    // Vérifier si le titre du film existe
-    if (isset($title) && !empty($title)) {
-        // Préparer la requête SQL
-        $stmt = $pdo->prepare("SELECT my_comment FROM projectIMDB.movies WHERE title = :title");
-        $stmt->execute(['title' => $title]);
-
-        // Récupérer tous les commentaires pour ce film
+    // Pour l'affichage des commentaires
+    if (isset($title)) {
+        $stmt = $pdo->prepare("SELECT my_comment FROM projectIMDBnoeschmidt.movies WHERE title = ?");
+        $stmt->execute([$title]);
         $comments = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
 
-    // Vérifier s'il y a des commentaires
-    if (count($comments) > 0) {
-        echo "<ul class='flex flex-col gap-4'>";
-        foreach ($comments as $comment) {
-            echo "<p class='bg-neutral-800 border-2 border-neutral-600 p-4 rounded-lg'>{$comment['my_comment']}</p>"; // Assurez-vous que le champ dans la base de données est appelé 'my_comment'
+        if ($comments) {
+            foreach ($comments as $comment) {
+                echo "<p class='bg-neutral-800 border-2 border-neutral-600 p-4 rounded-lg'>{$comment['my_comment']}</p>";
+            }
+        } else {
+            echo "<p>No comments yet...</p>";
         }
-        echo "</ul>";
     } else {
-        echo "<p>No comments yet...</p>";
+        echo "<p>No poster link provided.</p>";
     }
     ?>
-
-
 </div>
+
 <script src="../node_modules/flowbite/dist/flowbite.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -247,24 +233,6 @@ border border-neutral-200 rounded-lg dark:border-neutral-600 px-4 py-2"/>
             else scrollContainer.scrollLeft -= 100;
         });
     });
-
-    document.querySelectorAll('.star').forEach(item => {
-        item.onclick = () => {
-            let rating = item.getAttribute('data-value');
-            document.getElementById('rating').value = rating;
-            updateStars(rating);
-        }
-    });
-
-    function updateStars(rating) {
-        document.querySelectorAll('.star').forEach(item => {
-            if (item.getAttribute('data-value') <= rating) {
-                item.style.color = '#ffcc00';
-            } else {
-                item.style.color = '#d4af37';
-            }
-        });
-    }
 </script>
 </body>
 </html>
