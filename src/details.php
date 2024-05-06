@@ -189,6 +189,10 @@ require 'database.php'; // Assurez-vous que cette inclusion est correcte
         $poster_link = $_POST['poster_link'];
         $movie_link = $_POST['movie_link'];
 
+        if ($year == "Unknown year") {
+            $year = 0;
+        }
+
         try {
             $sql = "INSERT INTO `projectIMDBnoeschmidt`.movies (`title`, `description`, `imdb_rating`, `year`, `actors`, `my_rating`, `my_comment`, `poster_link`, `movie_link`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
             $stmt = $pdo->prepare($sql);
@@ -210,37 +214,46 @@ require 'database.php'; // Assurez-vous que cette inclusion est correcte
         $stmt->execute([$movie_link]);
         $comments = $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
-    ?>
 
-    <div class="movie-comments my-8">
-        <h2 class="font-semibold text-xl mb-4">Movie Comments</h2>
-        <?php
-
-        // Vérifier s'il y a des commentaires
+    echo "
+    <div class='movie-comments my-8'>";
+        echo "<h2 class='font-semibold text-xl mb-4'>Movie Comments</h2>";
         if (count($comments) > 0) {
-            echo "<ul class='flex flex-col gap-4'>";
+        echo "
+        <ul class='flex flex-col gap-4'>";
             foreach ($comments as $comment) {
-                echo "<p class='bg-neutral-800 border-2 border-neutral-600 p-4 rounded-lg h-fit line-clamp-3 text-wrap'>{$comment['my_comment']}</p>"; // Assurez-vous que le champ dans la base de données est appelé 'my_comment'
+            // Ici, on affiche également la note (my_rating)
+            echo "
+            <li class='bg-neutral-800 border-2 border-neutral-600 p-4 rounded-lg h-fit text-wrap w-fit'>";
+                echo "<p class='text-white font-bold flex place-items-center gap-1'> <svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill='#F9C202' viewBox='0 0 256 256'><path d='M234.29,114.85l-45,38.83L203,211.75a16.4,16.4,0,0,1-24.5,17.82L128,198.49,77.47,229.57A16.4,16.4,0,0,1,53,211.75l13.76-58.07-45-38.83A16.46,16.46,0,0,1,31.08,86l59-4.76,22.76-55.08a16.36,16.36,0,0,1,30.27,0l22.75,55.08,59,4.76a16.46,16.46,0,0,1,9.37,28.86Z'></path></svg> "  . htmlspecialchars($comment['my_rating']) . "</p>";
+                // Afficher la note
+                echo "<p>" . htmlspecialchars($comment['my_comment']) . "</p>"; // Afficher le commentaire
+                echo "
+            </li>
+            ";
             }
-            echo "</ul>";
+            echo "
+        </ul>
+        ";
         } else {
-            echo "<p>No comments yet...</p>";
+        echo "<p>No comments yet...</p>";
         }
-        ?>
+        echo "
     </div>
-</div>
+    ";
+        ?>
 
-<script src="../node_modules/flowbite/dist/flowbite.min.js"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const scrollContainer = document.querySelector('.scroll-container');
+    <script src="../node_modules/flowbite/dist/flowbite.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const scrollContainer = document.querySelector('.scroll-container');
 
-        // Écouter les événements de la souris et du toucher pour défilement horizontal
-        scrollContainer.addEventListener('wheel', function (e) {
-            if (e.deltaY > 0) scrollContainer.scrollLeft += 100;
-            else scrollContainer.scrollLeft -= 100;
+            // Écouter les événements de la souris et du toucher pour défilement horizontal
+            scrollContainer.addEventListener('wheel', function (e) {
+                if (e.deltaY > 0) scrollContainer.scrollLeft += 100;
+                else scrollContainer.scrollLeft -= 100;
+            });
         });
-    });
-</script>
+    </script>
 </body>
 </html>
