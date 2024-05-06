@@ -64,7 +64,7 @@ require 'database.php';
             echo "<div class='flex flex-col'>";
             echo "My Rating: " . $row["my_rating"];
             echo "<br>";
-            echo "My Comment: " . $row["my_comment"];
+            echo "<p class='truncate'>My Comment: " . $row["my_comment"] . "</p>";
             echo "</div>";
             echo "</a>";
         }

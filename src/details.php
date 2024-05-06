@@ -1,4 +1,5 @@
 <?php
+ob_start(); // Start buffering the output
 global $pdo;
 session_start();
 require 'database.php'; // Assurez-vous que cette inclusion est correcte
@@ -19,22 +20,28 @@ require 'database.php'; // Assurez-vous que cette inclusion est correcte
 <nav class="bg-black">
     <div class="flex flex-wrap items-center justify-between mx-auto">
         <a href="/" class="flex items-center space-x-3 rtl:space-x-reverse">
-            <img src="/assets/logo.png" class="h-8" alt="Flowbite Logo" />
+            <img src="/assets/logo.png" class="h-8" alt="Flowbite Logo"/>
             <span class="self-center text-2xl font-semibold whitespace-nowrap dark:text-white">IM(not)DB.onion</span>
         </a>
-        <button data-collapse-toggle="navbar-default" type="button" class="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600" aria-controls="navbar-default" aria-expanded="false">
+        <button data-collapse-toggle="navbar-default" type="button"
+                class="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600"
+                aria-controls="navbar-default" aria-expanded="false">
             <span class="sr-only">Open main menu</span>
             <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
-                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 1h15M1 7h15M1 13h15" />
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M1 1h15M1 7h15M1 13h15"/>
             </svg>
         </button>
         <div class="hidden w-full md:block md:w-auto" id="navbar-default">
             <ul class="font-medium flex flex-col p-4 md:p-0 mt-4 rounded-lg bg-transparent md:flex-row md:space-x-8 rtl:space-x-reverse md:mt-0 md:border-0">
                 <li>
-                    <a href="/" class="block text-white py-2 px-3 rounded hover:bg-red-700 transition-all ease-in-out duration-200">Home/Search</a>
+                    <a href="/"
+                       class="block text-white py-2 px-3 rounded hover:bg-red-700 transition-all ease-in-out duration-200">Home/Search</a>
                 </li>
                 <li>
-                    <a href="/src/list-movies.php" class="block text-white py-2 px-3 rounded hover:bg-red-700 transition-all ease-in-out duration-200">Movies Viewed</a>
+                    <a href="/src/list-movies.php"
+                       class="block text-white py-2 px-3 rounded hover:bg-red-700 transition-all ease-in-out duration-200">Movies
+                        Viewed</a>
                 </li>
             </ul>
         </div>
@@ -142,7 +149,7 @@ require 'database.php'; // Assurez-vous que cette inclusion est correcte
             <label for="rating" class="sr-only">Your rating</label>
             <input type="number" id="rating" name="rating" min="1" max="10" placeholder="Your rating (1-10)" required
                    class="w-full text-sm text-neutral-900 bg-white dark:bg-neutral-800 focus:ring-0 dark:text-white dark:placeholder-neutral-400
-border border-neutral-200 rounded-lg dark:border-neutral-600 px-4 py-2"/>
+    border border-neutral-200 rounded-lg dark:border-neutral-600 px-4 py-2"/>
             <div class="w-full mb-4 border border-neutral-200 rounded-lg bg-neutral-50 dark:bg-neutral-700 dark:border-neutral-600">
                 <div class="px-4 py-2 bg-white rounded-t-lg dark:bg-neutral-800">
                     <label for="comment" class="sr-only">Your comment</label>
@@ -170,19 +177,7 @@ border border-neutral-200 rounded-lg dark:border-neutral-600 px-4 py-2"/>
         </form>
     </div>
 
-    <h2 class="font-semibold text-xl mb-1">Comments</h2>
     <?php
-    if (isset($_GET['link'])) {
-        // Récupère la valeur URL encodée
-        $encodedUrl = $_GET['link'];
-
-        // Décoder l'URL
-        $decodedUrl = urldecode($encodedUrl);
-
-        // Pour le stocker dans la variable $movie_link
-        $movie_link = $decodedUrl;
-    }
-    // Traitement du formulaire de commentaire
     if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['comment'])) {
         $comment = $_POST['comment'];
         $rating = intval($_POST['rating']);
@@ -195,41 +190,44 @@ border border-neutral-200 rounded-lg dark:border-neutral-600 px-4 py-2"/>
         $movie_link = $_POST['movie_link'];
 
         try {
-            // Prepare SQL query with placeholders
             $sql = "INSERT INTO `projectIMDBnoeschmidt`.movies (`title`, `description`, `imdb_rating`, `year`, `actors`, `my_rating`, `my_comment`, `poster_link`, `movie_link`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
             $stmt = $pdo->prepare($sql);
             $stmt->execute([$title, $storyline, $imdb_rating, $year, $actors, $rating, $comment, $poster_link, $movie_link]);
-
-            // Redirect or handle post-submission display
-            echo "<meta http-equiv='refresh' content='0'>";
-            header('Location: details.php?=' . $movie_link);
-            exit;
+            ob_end_clean(); // Clear the buffer and stop buffering
+            header('Location: /'); // Redirect
+            exit;  // Assurez-vous que le script s'arrête après une redirection
         } catch (PDOException $e) {
+            ob_end_flush(); // Send the buffer and turn off buffering
             die("PDO Error: " . $e->getMessage());
         }
-    } else {
-        die("Required fields are missing.");
     }
-    // Déclaration de la variable pour stocker les commentaires
-    $comments = [];
 
-    // Pour l'affichage des commentaires
-    if (isset($title)) {
-        $stmt = $pdo->prepare("SELECT my_comment FROM projectIMDBnoeschmidt.movies WHERE title = ?");
-        $stmt->execute([$title]);
+    // La récupération des commentaires doit être placée après toute logique de redirection pour s'assurer qu'elle s'exécute à chaque chargement de page.
+    if (isset($_GET['link'])) {
+        $movie_link = urldecode($_GET['link']);
+        $sql = "SELECT my_comment, my_rating FROM `projectIMDBnoeschmidt`.movies WHERE movie_link = ?";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$movie_link]);
         $comments = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    ?>
 
-        if ($comments) {
+    <div class="movie-comments my-8">
+        <h2 class="font-semibold text-xl mb-4">Movie Comments</h2>
+        <?php
+
+        // Vérifier s'il y a des commentaires
+        if (count($comments) > 0) {
+            echo "<ul class='flex flex-col gap-4'>";
             foreach ($comments as $comment) {
-                echo "<p class='bg-neutral-800 border-2 border-neutral-600 p-4 rounded-lg'>{$comment['my_comment']}</p>";
+                echo "<p class='bg-neutral-800 border-2 border-neutral-600 p-4 rounded-lg h-fit line-clamp-3 text-wrap'>{$comment['my_comment']}</p>"; // Assurez-vous que le champ dans la base de données est appelé 'my_comment'
             }
+            echo "</ul>";
         } else {
             echo "<p>No comments yet...</p>";
         }
-    } else {
-        echo "<p>No poster link provided.</p>";
-    }
-    ?>
+        ?>
+    </div>
 </div>
 
 <script src="../node_modules/flowbite/dist/flowbite.min.js"></script>
