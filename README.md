@@ -12,3 +12,4 @@
 11. Choisir le fichier `projectIMDBnoeschmidt.sql` et cliquer sur "Import"
 12. Vous pouvez maintenant lancer le projet avec la commande `php -S localhost:8000`
 13. Aller sur localhost:8000 dans votre navigateur
+14. Enjoy !
